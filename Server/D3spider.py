@@ -3,15 +3,15 @@
 
 from sgmllib import SGMLParser
 import sys,urllib2,urllib,cookielib
+from flask import jsonify
 
-class spider(SGMLParser):
+class D3spider(SGMLParser):
     def __init__(self):
         
         SGMLParser.__init__(self)
         
-        self.m_resut_info = {}
-        self.m_server_list = []        
-        self.m_server_info = {} # m_server_name:m_server_status         
+        self.m_result_info = {}
+        self.m_server_list = {}        
         self.m_server_list_name = '' #服务类型
         self.m_server_status = ''    #服务状态
         self.m_server_name = ''      #服务名
@@ -90,7 +90,7 @@ class spider(SGMLParser):
                         self.serverListStart = True
                         #print '-----'+v 
                         #这里创建server_list
-                        self.m_server_list = []
+                        self.m_server_list = {}
 
                     elif v == 'status-icon up' or v == 'status-icon down':
                         self.usefulData = True
@@ -127,22 +127,15 @@ class spider(SGMLParser):
         #服务器地区名
         if self.h3 == True:
             #到这里需要判断下server_list是否空，存一份。           
-            if self.m_server_list_name != '':
-                print self.m_server_list_name
-            if self.m_server_list != []:
-                print self.m_server_list
-            #这里是服务地区名
+            if self.m_server_list_name != '' and self.m_server_list != {}:
+                self.m_result_info[self.m_server_list_name] = self.m_server_list
             self.m_server_list_name = text.strip()
             #print '=============>>>>>>>>>>>>'+text.strip()   
         #拍卖场
         elif self.h4 == True:
             #到这里需要判断下server_list是否空，存一份。            
-            if self.m_server_list_name != '':
-                print self.m_server_list_name
-            if self.m_server_list != []:
-                print self.m_server_list
-            #这里是现金拍卖场
-            self.m_server_list_name = text.strip()
+            if self.m_server_list_name != '' and self.m_server_list != {}:
+                self.m_result_info[self.m_server_list_name] = self.m_server_list            
             #print '========================='+text.strip()
 
         #拍卖场服务名
@@ -151,21 +144,11 @@ class spider(SGMLParser):
            #print '=====>'+text.strip()   
            self.m_server_name = text.strip()
            #设置好服务字典
-           self.m_server_info = {}
-           self.m_server_info[self.m_server_name] = self.m_server_status
-           self.m_server_list.append(self.m_server_info)
-        #self.dic.setdefault(self.names,[]).append(text)
-    
-    def show(self):
-        type = sys.getfilesystemencoding()
-        for key in self.dic:
-            print ( (''.join(key)).replace(' ','')).decode('utf-8').encode(type), \
-                ( (''.join(self.dic[key])).replace(' ','')).decode('utf-8').encode(type)
+           self.m_server_list[self.m_server_name] = self.m_server_status
 
 
 
-
-renrenspider=spider()
-renrenspider.parseDiabloServer('http://us.battle.net/d3/en/status')
-renrenspider.feed(renrenspider.file)
-#renrenspider.show()
+d3Spider=D3spider()
+d3Spider.parseDiabloServer('http://us.battle.net/d3/en/status')
+d3Spider.feed(d3Spider.file)
+print d3Spider.m_result_info
